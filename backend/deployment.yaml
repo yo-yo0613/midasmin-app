@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: midasmind-api
+spec:
+  replicas: 2 # 啟動兩個副本，確保一個掛掉另一個還在
+  selector:
+    matchLabels:
+      app: midasmind-backend
+  template:
+    metadata:
+      labels:
+        app: midasmind-backend
+    spec:
+      containers:
+      - name: api
+        image: your-docker-hub-id/midasmind-api:latest # 你的 Docker 映像檔
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_DATASOURCE_URL
+          value: jdbc:postgresql://postgres-service:5432/midasmind_db
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: midasmind-service
+spec:
+  type: LoadBalancer # 自動取得外網 IP
+  selector:
+    app: midasmind-backend
+  ports:
+  - port: 80
+    targetPort: 8080

@@ -1,0 +1,24 @@
+services:
+  # 資料庫服務
+  db:
+    image: postgres:15-alpine
+    container_name: midasmind-db
+    environment:
+      POSTGRES_USER: midas_user
+      POSTGRES_PASSWORD: midas_password
+      POSTGRES_DB: midasmind_db
+    ports:
+      - "5432:5432"
+
+  # Spring Boot API 服務
+  api:
+    build: .
+    container_name: midasmind-api
+    ports:
+    - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/midasmind_db
+      SPRING_DATASOURCE_USERNAME: midas_user
+      SPRING_DATASOURCE_PASSWORD: midas_password
+    depends_on:
+    - db # 確保資料庫先啟動
