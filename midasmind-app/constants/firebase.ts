@@ -1,7 +1,11 @@
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth, initializeAuth, Auth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
+import { 
+  getAuth, 
+  initializeAuth, 
+  Auth, 
+  browserLocalPersistence // 使用通用的 Web 持久化，Expo 相容性較高
+} from 'firebase/auth';
+import { getFirestore, Firestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAUppP2-8AMYOkQpVmdDwXNdQfbxw9QwDI",
@@ -12,23 +16,17 @@ const firebaseConfig = {
   appId: "1:480792482229:web:12df2338b8b5b1f4cb49fc"
 };
 
-// 確保 App 唯 初始化一次
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const app: FirebaseApp = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-// 使用動態 require 來繞過 Metro 的路徑解析錯誤
 let auth: Auth;
 try {
   auth = getAuth(app);
 } catch (e) {
-  // 核心：直接 require 核心 auth 模組，有些環境下 getReactNativePersistence 就在這裡面
-  const authModule = require('firebase/auth');
-  const getPersistence = authModule.getReactNativePersistence;
-  
+  // 修正：使用 browserLocalPersistence 避開 indexedDB 錯誤
   auth = initializeAuth(app, {
-    persistence: getPersistence(ReactNativeAsyncStorage)
+    persistence: browserLocalPersistence
   });
 }
 
-const db = getFirestore(app);
-
+const db: Firestore = getFirestore(app);
 export { auth, db };
